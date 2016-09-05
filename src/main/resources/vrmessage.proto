@@ -1,0 +1,5 @@
+option java_package = "com.cyber.netty.protobuf.bean";  
+option java_outer_classname = "VrMessageProto";
+message VrMessage {  
+  required string content = 1;
+} 
