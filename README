@@ -1,0 +1,1 @@
+ 实现了netty发送byte。发送字符串（基于行，基于分隔符）。并写了两个简单的编解码器。netty自带的发送接收protobuf。netty-http,netty-websocket
