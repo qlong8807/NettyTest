@@ -21,6 +21,9 @@ public class MessageProtocol implements java.io.Serializable{
 	
 	private String content;
 	
+	//验证通过后，给客户端返回一个标识，用于后面的操作验证
+	private String validateSerialize;
+	
 	
 	public MessageProtocol(){
 		
@@ -30,9 +33,24 @@ public class MessageProtocol implements java.io.Serializable{
 		this.messageType = messageType;
 		this.content = content;
 	}
+	
+	public MessageProtocol(int messageType,String content,String validateSerialize){
+		this.messageType = messageType;
+		this.content = content;
+		this.validateSerialize = validateSerialize;
+	}
 
 	public int getMessageType() {
 		return messageType;
+	}
+	
+	
+	public String getValidateSerialize() {
+		return validateSerialize;
+	}
+
+	public void setValidateSerialize(String validateSerialize) {
+		this.validateSerialize = validateSerialize;
 	}
 
 	public void setMessageType(int messageType) {
@@ -49,8 +67,8 @@ public class MessageProtocol implements java.io.Serializable{
 
 	@Override
 	public String toString() {
-		return "Message [messageType=" + messageType + ", content=" + content
-				+ "]";
+		return "MessageProtocol [messageType=" + messageType + ", content="
+				+ content + ", validateSerialize=" + validateSerialize + "]";
 	}
 
 	

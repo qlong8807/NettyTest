@@ -1,4 +1,4 @@
 传输的对象为 消息头+消息体
-消息头为 消息体的长度 长度为int类型
+消息头为 消息体的长度 长度为int/long类型
 如果要使用，需要先确定消息体的具体类型，然后在MyByteEncoder和MyByteDecoder中做适当的改变。
 序列化协议也要在MyByteEncoder和MyByteDecoder中改造。现在使用的是java Serializable

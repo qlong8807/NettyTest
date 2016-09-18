@@ -20,7 +20,7 @@ public class MyByteDecoder extends ByteToMessageDecoder {
 	/**
 	 * 这个HEAD_LENGTH是我们用于表示头长度的字节数。 由于上面我们传的是一个int类型的值，所以这里HEAD_LENGTH的值为4.
 	 */
-	private static final int HEAD_LENGTH = 4;
+	private static final int HEAD_LENGTH = 8;
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in,
@@ -35,6 +35,7 @@ public class MyByteDecoder extends ByteToMessageDecoder {
 		if (dataLength < 0) {
 			ctx.close();
 		}
+		System.out.println(dataLength);
 
 		// 读到的消息体长度如果小于我们传送过来的消息长度，则resetReaderIndex.
 		// 这个配合markReaderIndex使用的。把readIndex重置到mark的地方
