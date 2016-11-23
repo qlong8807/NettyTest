@@ -60,7 +60,7 @@ public class HttpFileServerHandler extends
 			return;
 		}
 		String uri = request.getUri();
-		System.out.println("uri:"+uri);
+		System.out.println("请求的uri:"+uri);
 		String path = sanitizeUri(uri);
 		if (null == path) {
 			sendError(context, HttpResponseStatus.FORBIDDEN);
@@ -129,6 +129,11 @@ public class HttpFileServerHandler extends
 		}
 	}
 
+	/**
+	 * 判断当前request是否为keepalive
+	 * @param request
+	 * @return
+	 */
 	private boolean isKeepAlive(FullHttpRequest request) {
 		String string = request.headers().get(HttpHeaders.Names.CONNECTION);
 		if (null != string && HttpHeaders.Values.KEEP_ALIVE.equals(string)) {
@@ -137,6 +142,11 @@ public class HttpFileServerHandler extends
 		return false;
 	}
 
+	/**
+	 * 获得uri在文件系统中的绝对路径
+	 * @param uri 请求地址
+	 * @return 文件系统绝对路径
+	 */
 	private String sanitizeUri(String uri) {
 		try {
 			uri = URLDecoder.decode(uri, "UTF-8");
@@ -170,6 +180,7 @@ public class HttpFileServerHandler extends
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
+		System.err.println("发生异常。。。");
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -184,11 +195,11 @@ public class HttpFileServerHandler extends
 		String dirPath = dir.getPath();
 		builder.append("<!DOCTYPE html>\r\n");
 		builder.append("<html><head><title>");
-		builder.append(dirPath);
+//		builder.append(dirPath);
 		builder.append("目录：");
 		builder.append("</title></head><body>\r\n");
 		builder.append("<h3>");
-		builder.append(dirPath).append("目录:");
+		builder.append(dirPath+"\r\n").append("目录:");
 		builder.append("</h3>\r\n");
 		builder.append("<ul>");
 		builder.append("<li>链接：<a href=\"../\">..</a></li>\r\n");
@@ -222,6 +233,11 @@ public class HttpFileServerHandler extends
 				.addListener(ChannelFutureListener.CLOSE);
 	}
 
+	/**
+	 * 发送错误信息
+	 * @param context
+	 * @param status
+	 */
 	private static void sendError(ChannelHandlerContext context,
 			HttpResponseStatus status) {
 		FullHttpResponse response = new DefaultFullHttpResponse(
@@ -233,12 +249,22 @@ public class HttpFileServerHandler extends
 				.addListener(ChannelFutureListener.CLOSE);
 	}
 
+	/**
+	 * 设置response的Content-Type
+	 * @param response
+	 * @param file
+	 */
 	private static void setContentTypeHeader(HttpResponse response, File file) {
 		MimetypesFileTypeMap mime = new MimetypesFileTypeMap();
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE,
 				mime.getContentType(file.getPath()));
 	}
 
+	/**
+	 * 设置response的Content-Length
+	 * @param response
+	 * @param length
+	 */
 	private static void setContentLength(HttpResponse response, long length) {
 		response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, length);
 	}
