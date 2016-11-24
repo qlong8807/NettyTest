@@ -3,12 +3,14 @@
  */
 package com.cyber.netty.http2;
 
+import com.cyber.netty.http2.annotation.NController;
+
 /**
  * @author zyl
  * @date 2016年11月23日
  * 
  */
-
+@NController("hello")
 public class HelloController {
 
 	public String say(String name,String age){

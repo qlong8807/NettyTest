@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- <appender name="Sentry" class="net.kencochrane.raven.logback.SentryAppender"> 
+		<dsn>https://publicKey:secretKey@host:port/1?options</dsn> <dsn>http://fb3db0354d984f328234b7f00edadee1:74f9b511c4ca4109916ea5907f45b50c@192.168.99.100:9000/1 
+		</dsn> <tags>tag1:value1,tag2:value2</tags> Optional, allows to select the 
+		ravenFactory <ravenFactory>net.kencochrane.raven.DefaultRavenFactory</ravenFactory> 
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter"> <level>ERROR</level> 
+		</filter> </appender> -->
+	<appender name="dailyRollingFileAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>/logs/app.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover 使用%d{yyyy-MM-dd_HH-mm}来定义精确到分的日志切分方式。 -->
+			<FileNamePattern>/logs/app.%d{yyyy-MM-dd_HH-mm}.log</FileNamePattern>
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>3GB</totalSizeCap>
+<!-- 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP"> -->
+<!--                 <maxFileSize>2MB</maxFileSize> -->
+<!--             </timeBasedFileNamingAndTriggeringPolicy> -->
+		</rollingPolicy>
+		<encoder>
+			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg %n
+			</Pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder charset="UTF-8">
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg %n</pattern>
+            <charset>utf8</charset>
+		</encoder>
+	</appender>
+	<root level="INFO">
+		<!-- <appender-ref ref="Sentry" /> -->
+		<!-- <appender-ref ref="dailyRollingFileAppender" /> -->
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>

@@ -17,6 +17,8 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 import java.net.InetSocketAddress;
 
+import com.cyber.netty.http2.annotation.AnnotationUtil;
+
 /**
  * @author zyl
  * @date 2016年7月22日
@@ -45,7 +47,7 @@ public class HttpServer1 {
 							arg0.pipeline().addLast("http-chunk",
 									new ChunkedWriteHandler());
 							arg0.pipeline().addLast("http-file-handler",
-									new HttpServerHandler(webName));
+									new HttpServerHandler());
 						}
 					});
 			ChannelFuture future = b.bind().sync();
@@ -61,6 +63,7 @@ public class HttpServer1 {
 
 	public static void main(String[] args) {
 		try {
+			AnnotationUtil.initMap("com.cyber.netty.http2");
 			new HttpServer1().run("/src", 8989);
 		} catch (Exception e) {
 			e.printStackTrace();

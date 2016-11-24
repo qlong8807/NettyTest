@@ -21,7 +21,6 @@ import io.netty.util.CharsetUtil;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -33,6 +32,12 @@ import javassist.bytecode.MethodInfo;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.cyber.netty.http2.annotation.AnnotationUtil;
+import com.cyber.netty.http2.exception.UriException;
+
 /**
  * @author zyl
  * @date 2016年7月22日
@@ -40,15 +45,13 @@ import javax.activation.MimetypesFileTypeMap;
  */
 public class HttpServerHandler extends
 		SimpleChannelInboundHandler<FullHttpRequest> {
-	private String url;
-	private static final Pattern PATTERN_URL = Pattern.compile(".*[<>&\"].*");
-	private static final Pattern ALLOWED_FILE_NAME = Pattern
-			.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
+//	private String webName;
+	private static Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
 	private ClassPool pool = ClassPool.getDefault();
 
-	public HttpServerHandler(String url) {
-		this.url = url;
-	}
+//	public HttpServerHandler(String webName) {
+//		this.webName = webName;
+//	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext context,
@@ -68,13 +71,21 @@ public class HttpServerHandler extends
 		Map<String, String> parmMap = RequestParser.parse(request);
 		System.out.println(parmMap);
 		System.out.println("------------------------------");
-		String methodName = "say";
-
-		Class<?> clazz = Class.forName("com.cyber.netty.http2.HelloController");
+		String controllerName = getControllerName(uri);
+		String methodName = getMethodName(uri);
+		System.err.println("control:"+controllerName+"------method:"+methodName);
+		Class<?> clazz = AnnotationUtil.getControllerClass(controllerName);
+		if(null == clazz){
+			logger.error("没有找到uri:"+uri+"对应的controller类");
+			context.close();
+			return;
+		}
 		Object newInstance = clazz.newInstance();
 		Method[] declaredMethods = clazz.getDeclaredMethods();
+		boolean hasMethod = false;
 		for (Method method : declaredMethods) {
 			if (method.getName().equals(methodName)) {
+				hasMethod = true;
 				int parameterCount = method.getParameterCount();
 				System.out.println("参数个数为：" + parameterCount);
 				Class<?>[] parameterTypes = method.getParameterTypes();
@@ -107,7 +118,26 @@ public class HttpServerHandler extends
 				sendMessage(context, (String) invoke);
 			}
 		}
+		if(!hasMethod){
+			logger.error("没有找到对应的方法，请求地址是："+uri);
+			context.close();
+		}
 
+	}
+	
+	private String getControllerName(String uri) throws UriException{
+		String[] split = uri.split("/");
+		if(split.length < 4){
+			throw new UriException("uri长度异常");
+		}
+		return split[2];
+	}
+	private String getMethodName(String uri) throws UriException{
+		String[] split = uri.split("/");
+		if(split.length < 4){
+			throw new UriException("uri长度异常");
+		}
+		return split[3];
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.cyber.netty.http2;
+package com.cyber.netty.http2.exception;
 
 /**
  * @author zyl
