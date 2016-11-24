@@ -45,13 +45,13 @@ import com.cyber.netty.http2.exception.UriException;
  */
 public class HttpServerHandler extends
 		SimpleChannelInboundHandler<FullHttpRequest> {
-//	private String webName;
+	private String webName;
 	private static Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
 	private ClassPool pool = ClassPool.getDefault();
 
-//	public HttpServerHandler(String webName) {
-//		this.webName = webName;
-//	}
+	public HttpServerHandler(String webName) {
+		this.webName = webName;
+	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext context,
@@ -62,22 +62,26 @@ public class HttpServerHandler extends
 		}
 		// 只接收post请求
 		if (request.getMethod() != HttpMethod.POST) {
+			logger.error("当前项目{}只接受POST请求，该请求不符合要求，踢出。",webName);
 			sendError(context, HttpResponseStatus.METHOD_NOT_ALLOWED);
 			return;
 		}
 		String uri = request.getUri();
 		System.out.println("请求的uri:" + uri);
+		if(!webName.equals(getWebName(uri))){
+			logger.error("请求地址的项目{}名称错误，请检查。",uri);
+			sendError(context, HttpResponseStatus.BAD_GATEWAY);
+			return;
+		}
 		//将GET, POST所有请求参数转换成Map对象
 		Map<String, String> parmMap = RequestParser.parse(request);
-		System.out.println(parmMap);
-		System.out.println("------------------------------");
+		System.out.println("请求的参数是："+parmMap);
 		String controllerName = getControllerName(uri);
 		String methodName = getMethodName(uri);
-		System.err.println("control:"+controllerName+"------method:"+methodName);
 		Class<?> clazz = AnnotationUtil.getControllerClass(controllerName);
 		if(null == clazz){
 			logger.error("没有找到uri:"+uri+"对应的controller类");
-			context.close();
+			sendError(context, HttpResponseStatus.NOT_FOUND);
 			return;
 		}
 		Object newInstance = clazz.newInstance();
@@ -86,14 +90,6 @@ public class HttpServerHandler extends
 		for (Method method : declaredMethods) {
 			if (method.getName().equals(methodName)) {
 				hasMethod = true;
-				int parameterCount = method.getParameterCount();
-				System.out.println("参数个数为：" + parameterCount);
-				Class<?>[] parameterTypes = method.getParameterTypes();
-				for (Class<?> clas : parameterTypes) {
-					String parameterName = clas.getName();
-					System.out.println("参数名称:" + parameterName);
-				}
-				System.out.println("*****************************");
 				CtClass cc = pool.get(clazz.getName());
 				CtMethod cm = cc.getDeclaredMethod(methodName);
 				// 使用javaassist的反射方法获取方法的参数名
@@ -102,7 +98,9 @@ public class HttpServerHandler extends
 				LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute
 						.getAttribute(LocalVariableAttribute.tag);
 				if (attr == null) {
-					// exception
+					sendError(context, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+					logger.error("没有获取到对应的方法信息");
+					return;
 				}
 				// paramNames即参数名
 				String[] paramNames = new String[cm.getParameterTypes().length];
@@ -120,11 +118,18 @@ public class HttpServerHandler extends
 		}
 		if(!hasMethod){
 			logger.error("没有找到对应的方法，请求地址是："+uri);
-			context.close();
+			sendError(context, HttpResponseStatus.NOT_FOUND);
 		}
 
 	}
 	
+	private String getWebName(String uri) throws UriException{
+		String[] split = uri.split("/");
+		if(split.length < 4){
+			throw new UriException("uri长度异常");
+		}
+		return split[1];
+	}
 	private String getControllerName(String uri) throws UriException{
 		String[] split = uri.split("/");
 		if(split.length < 4){
@@ -175,13 +180,13 @@ public class HttpServerHandler extends
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 		super.channelReadComplete(ctx);
-		System.out.println("complete................");
+//		System.out.println("complete................");
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
-		System.err.println("发生异常。。。");
+		logger.error("发生异常。。。",cause);
 		cause.printStackTrace();
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);

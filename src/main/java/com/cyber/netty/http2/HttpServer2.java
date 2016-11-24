@@ -15,7 +15,11 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cyber.netty.http2.annotation.AnnotationUtil;
 
@@ -24,7 +28,8 @@ import com.cyber.netty.http2.annotation.AnnotationUtil;
  * @date 2016年7月22日
  * 
  */
-public class HttpServer1 {
+public class HttpServer2 {
+	private static Logger logger = LoggerFactory.getLogger(HttpServer2.class);
 
 	public void run(final String webName, int port) throws Exception {
 		EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -47,11 +52,13 @@ public class HttpServer1 {
 							arg0.pipeline().addLast("http-chunk",
 									new ChunkedWriteHandler());
 							arg0.pipeline().addLast("http-file-handler",
-									new HttpServerHandler());
+									new HttpServerHandler(webName));
 						}
 					});
 			ChannelFuture future = b.bind().sync();
-			System.out.println("服务器启动，地址是：http://localhost:"+port+webName);
+			InetAddress addr = InetAddress.getLocalHost();
+			String ip=addr.getHostAddress().toString();
+			logger.info("服务器启动，地址是：http://"+ip+":"+port+"/"+webName);
 			future.channel().closeFuture().sync();
 		}catch(Exception e){ 
 			e.printStackTrace();
@@ -64,7 +71,7 @@ public class HttpServer1 {
 	public static void main(String[] args) {
 		try {
 			AnnotationUtil.initMap("com.cyber.netty.http2");
-			new HttpServer1().run("/src", 8989);
+			new HttpServer2().run("src", 8989);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
