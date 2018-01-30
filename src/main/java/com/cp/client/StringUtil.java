@@ -501,6 +501,30 @@ public class StringUtil {
 
 		return valueLength;
 	}
+	/**
+	 * 判断有几个汉字
+	 * @param str
+	 * @return
+	 */
+	public static int strChinaLength(String str) {
+		int len = 0;
+		String chinese = "[\u0391-\uFFE5]";
+		/* 获取字段值的长度，如果含中文字符，则每个中文字符长度为2，否则为1 */
+		if (StringUtils.isNotBlank(str)) {
+			for (int i = 0; i < str.length(); i++) {
+				/* 获取一个字符 */
+				String temp = str.substring(i, i + 1);
+				/* 判断是否为中文字符 */
+				if (temp.matches(chinese)) {
+					/* 中文字符长度为2 */
+					len++;
+				} else {
+					/* 其他字符长度为1 */
+				}
+			}
+		}
+		return len;
+	}
 
 	/**
 	 * 字符串不足位数 右补指定字符

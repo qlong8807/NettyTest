@@ -2,6 +2,7 @@ package com.cp.client.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,8 +32,8 @@ import io.netty.util.Attribute;
  */
 public class ClientUploadHandler {
 	private static Logger logger = LoggerFactory.getLogger(ClientUploadHandler.class);
-	private static String inst_code = "02017910";
-	private static String localFilePath = "/Users/apple/Documents/test/frontSocket";
+	private String inst_code = "";
+	private String localFilePath = "";
 	/**
 	 * 文件名集合
 	 */
@@ -48,7 +49,10 @@ public class ClientUploadHandler {
 	 * 1-已发送4001，2-已发送4006，3-已发送4003，4-已发送4004,5-已发送4007
 	 */
 	private int step = 0;
-
+	public ClientUploadHandler(String code,String path) {
+		this.inst_code = code;
+		this.localFilePath = path;
+	}
 	public void requestUpload4001(ChannelHandlerContext ctx, Package pkg) {
 		if(null == pkg) {
 			pkg = new Package();
@@ -60,7 +64,7 @@ public class ClientUploadHandler {
 			pkg.setEncrypt_flag("1");
 		}
 		pkg.setMsg_type(Constant.PRO_UP_REQUEST_CMD);
-		String name = StringUtil.addSpaceForStr_R("", 40);
+		String name = StringUtil.addSpaceForStr_R("长安通", 40);
 		String code = StringUtil.addSpaceForStr_R(inst_code, 11);
 		String keep = StringUtil.addForStr_R("", "F", 256);
 		pkg.setContent(name + code + keep);
@@ -74,6 +78,12 @@ public class ClientUploadHandler {
 		String temp_fileName = fileNameList.get(fileIndex);
 		String fileContent = files.get(temp_fileName);
 		fileCurrentSize = fileContent.length();
+		int fileBytesLength = 0;
+		try {
+			fileBytesLength = fileContent.getBytes(Constant.GB2312_STR).length;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		fileSendedSize = 0;
 		int namelength = temp_fileName.length();
 		if (namelength > 50)
@@ -81,7 +91,7 @@ public class ClientUploadHandler {
 		if (namelength < 50)
 			temp_fileName = StringUtil.addSpaceForStr_R(temp_fileName, 50);
 		String fileDesc = StringUtil.addSpaceForStr_R("filedesc256", 256);
-		String fileSizeString = StringUtil.addZeroForStr_L("" + fileCurrentSize, 10);
+		String fileSizeString = StringUtil.addZeroForStr_L("" + fileBytesLength, 10);
 		String keep = StringUtil.addSpaceForStr_L("", 256);
 		pkg.setMsg_type(Constant.PRO_FILE_INFO_NOTIFY_CMD);
 		pkg.setContent(temp_fileName + fileDesc + fileSizeString+keep);

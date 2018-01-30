@@ -15,9 +15,12 @@ public class MyClientHandler extends ChannelInboundHandlerAdapter {
 
 	public int processType = 0;
 	private static Logger logger = LoggerFactory.getLogger(MyClientHandler.class);
-	private ClientUploadHandler clientUploadHandler = new ClientUploadHandler();
-	private ClientDownloadHandler clientDownloadHandler = new ClientDownloadHandler();
-
+	private ClientUploadHandler clientUploadHandler;
+	private ClientDownloadHandler clientDownloadHandler;
+	public MyClientHandler(String code,String path) {
+		this.clientDownloadHandler = new ClientDownloadHandler(code, path);
+		this.clientUploadHandler = new ClientUploadHandler(code, path);
+	}
 	/**
 	 * 此方法会在连接到服务器后被调用
 	 * 

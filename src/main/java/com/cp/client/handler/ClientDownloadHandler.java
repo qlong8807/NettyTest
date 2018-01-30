@@ -2,6 +2,7 @@ package com.cp.client.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
@@ -29,8 +30,8 @@ import io.netty.util.Attribute;
  */
 public class ClientDownloadHandler {
 	private static Logger logger = LoggerFactory.getLogger(ClientUploadHandler.class);
-	private static String inst_code = "02017910";
-	private static String localFilePath = "/Users/apple/Documents/test/frontSocket";
+	private String inst_code = "";
+	private String localFilePath = "";
 
 	private int fileNum = 0;
 	private int fileSavedNum = 0;
@@ -38,6 +39,10 @@ public class ClientDownloadHandler {
 	private int fileSize = 0;
 	private StringBuilder fileContent = new StringBuilder(2000);
 
+	public ClientDownloadHandler(String code,String path) {
+		this.inst_code = code;
+		this.localFilePath = path;
+	}
 	public void requestDownload4002(ChannelHandlerContext ctx, Package pkg) {
 		if (null == pkg) {
 			pkg = new Package();
@@ -49,7 +54,7 @@ public class ClientDownloadHandler {
 			pkg.setEncrypt_flag("1");
 		}
 		pkg.setMsg_type(Constant.PRO_DOWN_REQUEST_CMD);
-		String name = StringUtil.addSpaceForStr_R("", 40);
+		String name = StringUtil.addSpaceForStr_R("长安个球", 40);
 		String code = StringUtil.addSpaceForStr_R(inst_code, 11);
 		String date = StringUtil.addZeroForStr_L("", 8);
 		String keep = StringUtil.addForStr_R("", "F", 256);
@@ -60,10 +65,17 @@ public class ClientDownloadHandler {
 
 	public void fileInfo4003(ChannelHandlerContext ctx, Package pkg) {
 		String content = pkg.getContent();
-		if (StringUtils.isNotBlank(content) && content.length() == 572) {
+		int len = 0;
+		try {
+			len = content.getBytes(Constant.GB2312_STR).length;
+		} catch (UnsupportedEncodingException e) {
+			logger.error("解析4003报文出现编码异常:<{}>",e.getMessage());
+		}
+		if (StringUtils.isNotBlank(content) && len == 572) {
 			fileName = content.substring(0, 50).trim();
 			// fileDesc = content.substring(50, 306).trim();
-			fileSize = Integer.parseInt(content.substring(306, 316));
+			String sizeStr = content.substring(content.length()-266,content.length()-256);
+			fileSize = Integer.parseInt(sizeStr);
 			// 校验上三项
 			if (fileName.length() != 33) {
 				pkg.setMsg_type(Constant.PRO_RESPONSE);
@@ -152,6 +164,8 @@ public class ClientDownloadHandler {
 
 	public void fileEnd4007(ChannelHandlerContext ctx, Package pkg) {
 		// 一个文件传输结束，生成文件
+		int strChinaLength = StringUtil.strChinaLength(fileContent.toString());
+		fileSize = fileSize - strChinaLength;
 		if (fileSize == fileContent.length()) {
 			logger.info("客户端<{}>,文件<{}>接收完成，大小匹配。", ctx.channel().remoteAddress(), fileName);
 			try {

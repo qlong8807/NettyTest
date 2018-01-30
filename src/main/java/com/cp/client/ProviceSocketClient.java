@@ -38,10 +38,15 @@ public class ProviceSocketClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new ProviceSocketClient("127.0.0.1", 8088).start();
+//		String inst_code = "02017910";
+		String inst_code = "12088010";
+		String localFilePath = "/Users/apple/Documents/test/frontSocket";
+//		new ProviceSocketClient("192.168.0.216", 18088).start();11078060
+		new ProviceSocketClient("124.114.131.58", 20011).start(inst_code,localFilePath);
+//		new ProviceSocketClient("127.0.0.1", 18088).start(inst_code,localFilePath);
 	}
 
-	public void start(){
+	public void start(final String code,final String path){
 		bootstrap = new Bootstrap();
 		workerGroup = new NioEventLoopGroup();
 		bootstrap.group(workerGroup);
@@ -51,7 +56,7 @@ public class ProviceSocketClient {
 			public void initChannel(SocketChannel ch) throws Exception {
 				ch.pipeline().addLast(new ProviceClientDecoder());
 				ch.pipeline().addLast(new ProviceClientEncoder());
-				ch.pipeline().addLast(new MyClientHandler());
+				ch.pipeline().addLast(new MyClientHandler(code,path));
 			}
 		});
 		doConnect();

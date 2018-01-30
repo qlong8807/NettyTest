@@ -30,6 +30,7 @@ public class ProviceClientEncoder extends MessageToByteEncoder<Package> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Package pkg, ByteBuf out) throws Exception {
 		logger.info("客户端-->服务端:{}",pkg.getMsg_type());
+		System.err.println(pkg.getMsg_type()+"--->"+pkg.getContent());
 		//先对content进行加密
 		byte[] pre = (pkg.getClient_sync_info() + pkg.getZip_flag() + pkg.getEncrypt_flag() + pkg.getVersion()
 		+ pkg.getMsg_type()).getBytes(Constant.GB2312_STR);
