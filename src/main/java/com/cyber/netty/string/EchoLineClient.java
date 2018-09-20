@@ -3,6 +3,8 @@
  */
 package com.cyber.netty.string;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author zyl
  * @date 2016年7月28日
@@ -23,8 +25,6 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
-
-import java.net.InetSocketAddress;
 
 public class EchoLineClient {
 	private final String host;
@@ -80,9 +80,9 @@ public class EchoLineClient {
 		 * 此方法会在连接到服务器后被调用
 		 * */
 		public void channelActive(ChannelHandlerContext ctx) {
-			String s = "hello Netty\r\n";
+			String s = "1hello Netty\r\n";
 			ctx.writeAndFlush(s);
-
+			System.out.println("sended");
 			// 拆包问题
 			/*
 			 * String s = ""; for(int i=0;i<10000;i++){ s+="Netty Name"+i; }
@@ -107,7 +107,7 @@ public class EchoLineClient {
 		 * */
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 			// cause.printStackTrace();
-			System.out.println("客户端：服务端已关闭");
+			System.out.println("客户端：服务端已关闭:"+cause.getMessage());
 			ctx.close();
 		}
 	}
