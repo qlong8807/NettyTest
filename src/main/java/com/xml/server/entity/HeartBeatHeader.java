@@ -20,5 +20,5 @@ public class HeartBeatHeader {
     @XmlElement(name = "MessageName")
     private String messageName;
     @XmlElement(name = "MessageTime")
-    private Date messageTime;
+    private String messageTime;
 }

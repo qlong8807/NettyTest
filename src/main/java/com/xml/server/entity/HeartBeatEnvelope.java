@@ -11,6 +11,10 @@ import javax.xml.bind.annotation.*;
 @NoArgsConstructor
 @XmlRootElement(name="Envelope")
 @XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {
+        "header",
+        "body"
+})
 public class HeartBeatEnvelope {
 
     @XmlElement(name = "Header")
