@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.cyber.netty.http2.util;
 
 import java.io.File;

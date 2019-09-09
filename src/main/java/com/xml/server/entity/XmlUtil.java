@@ -1,20 +1,11 @@
 package com.xml.server.entity;
 
-import ch.qos.logback.core.encoder.EncoderBase;
-import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
-import org.dom4j.DocumentFactory;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.SAXWriter;
-import sun.applet.Main;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class XmlUtil {
 

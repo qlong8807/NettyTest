@@ -41,8 +41,8 @@ public class Dom4jTest {
         Element target = body.addElement("Target");
         target.setText("google");
 
-//        OutputFormat format = OutputFormat.createCompactFormat();
-        OutputFormat format = OutputFormat.createPrettyPrint();
+        OutputFormat format = OutputFormat.createCompactFormat();
+//        OutputFormat format = OutputFormat.createPrettyPrint();
 
 //        format.setNewlines(true);
 //        format.setIndent("yes");
