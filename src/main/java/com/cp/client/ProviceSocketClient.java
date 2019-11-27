@@ -42,7 +42,7 @@ public class ProviceSocketClient {
 		String inst_code = "12088010";
 		String localFilePath = "/Users/apple/Documents/test/frontSocket";
 //		new ProviceSocketClient("192.168.0.216", 18088).start();11078060
-		new ProviceSocketClient("124.114.131.58", 20011).start(inst_code,localFilePath);
+		new ProviceSocketClient("localhost", 20000).start(inst_code,localFilePath);
 //		new ProviceSocketClient("127.0.0.1", 18088).start(inst_code,localFilePath);
 	}
 
@@ -54,9 +54,9 @@ public class ProviceSocketClient {
 		bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 			public void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast(new ProviceClientDecoder());
-				ch.pipeline().addLast(new ProviceClientEncoder());
-				ch.pipeline().addLast(new MyClientHandler(code,path));
+				ch.pipeline().addLast(new ProviceClientDecoder())
+						.addLast(new ProviceClientEncoder())
+						.addLast(new MyClientHandler(code,path));
 			}
 		});
 		doConnect();

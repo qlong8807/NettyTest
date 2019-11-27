@@ -47,8 +47,10 @@ public class MyXmlServer {
         bootstrap = new ServerBootstrap();// 引导辅助程序
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
-        bootstrap.group(bossGroup, workerGroup);
-        bootstrap.channel(NioServerSocketChannel.class);// 设置nio类型的channel
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)// 设置nio类型的channel
+                .option(ChannelOption.SO_BACKLOG, 128)//设置连接队列长度
+                .childOption(ChannelOption.SO_KEEPALIVE, true);//保持连接
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {// 有连接到达时会创建一个channel
             protected void initChannel(SocketChannel ch) throws Exception {
 //					ch.pipeline().addLast(new StringDecoder(CharsetUtil.UTF_8));

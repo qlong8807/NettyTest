@@ -1,10 +1,11 @@
 /**
  * 
  */
-package com.xml.server;
+package com.xml.client;
 
-import com.cyber.netty.string.EchoLineClient;
 import com.xml.parse.Dom4jTest;
+import com.xml.server.MyCtxCache;
+import com.xml.server.XmlDecoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -12,9 +13,6 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.LineBasedFrameDecoder;
-import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
 
@@ -48,10 +46,11 @@ public class MyXmlClient {
 			b.remoteAddress(new InetSocketAddress(host, port));
 			b.handler(new ChannelInitializer<SocketChannel>() {
 				public void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new StringDecoder(CharsetUtil.UTF_8));
+//					ch.pipeline().addLast(new StringDecoder(CharsetUtil.UTF_8));
 					// 加了StringEncoder编码器就可以直接发送String，要不还得转换为ByteBuffer
 					ch.pipeline().addLast(new StringEncoder(CharsetUtil.UTF_8));
-					ch.pipeline().addLast(new DelimiterBasedFrameDecoder(128, Unpooled.copiedBuffer("</Envelope>".getBytes(CharsetUtil.UTF_8))));
+//					ch.pipeline().addLast(new DelimiterBasedFrameDecoder(128, Unpooled.copiedBuffer("</Envelope>".getBytes(CharsetUtil.UTF_8))));
+					ch.pipeline().addLast(new XmlDecoder());
 					ch.pipeline().addLast(new MyXmlClientHandler(name));
 				}
 			});
@@ -93,17 +92,6 @@ public class MyXmlClient {
 			String s = Dom4jTest.generateXmlString();
 			ctx.writeAndFlush(s);
 			System.out.println("sended");
-			// 拆包问题
-			/*
-			 * String s = ""; for(int i=0;i<10000;i++){ s+="Netty Name"+i; }
-			 * ctx.writeAndFlush(Unpooled.copiedBuffer(s+"\r\n",
-			 * CharsetUtil.UTF_8));
-			 */
-			// 粘包问题
-			/*
-			 * for(int i=0;i<10000;i++){ String s = "hello netty"+i+"\r\n";
-			 * ctx.writeAndFlush(Unpooled.copiedBuffer(s, CharsetUtil.UTF_8)); }
-			 */
 		}
 
 		@Override
@@ -116,14 +104,14 @@ public class MyXmlClient {
 				throw new NullPointerException("收到结束异常");
 			}
 //			MyCtxCache.getCtx(ctxName).writeAndFlush("我收到了："+msg);
-			ctx.writeAndFlush(Unpooled.copiedBuffer("我收到了："+msg,CharsetUtil.UTF_8));
+//			ctx.writeAndFlush(Unpooled.copiedBuffer("我收到了："+msg,CharsetUtil.UTF_8));
 		}
 
 		/**
 		 * 捕捉到异常
 		 * */
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-			// cause.printStackTrace();
+			 cause.printStackTrace();
 
 			System.out.println("异常啦===============================："+cause.getMessage());
 			System.out.println("我要重连");

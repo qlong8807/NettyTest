@@ -2,6 +2,7 @@ package com.cp.server;
 
 import java.util.concurrent.TimeUnit;
 
+import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +11,6 @@ import com.cp.server.coder.ProviceServerEncoder;
 import com.cp.server.handler.ProviceHandler;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -35,10 +32,12 @@ public class ProviceServer {
 	public void start(int port, final String data_dir) {
 		this.port = port;
 		bootstrap = new ServerBootstrap();// 引导辅助程序
-		bossGroup = new NioEventLoopGroup();
-		workerGroup = new NioEventLoopGroup();
-		bootstrap.group(bossGroup, workerGroup);
-		bootstrap.channel(NioServerSocketChannel.class);// 设置nio类型的channel
+		bossGroup = new NioEventLoopGroup();//TCP 连接接入线程池
+		workerGroup = new NioEventLoopGroup();//处理客户端网络IO工作的读写线程池
+		bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)// 设置nio类型的channel
+                .option(ChannelOption.SO_BACKLOG, 128)//设置连接队列长度
+                .childOption(ChannelOption.SO_KEEPALIVE, true);//保持连接
 		bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {// 有连接到达时会创建一个channel
 			protected void initChannel(SocketChannel ch) throws Exception {
 				// ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
@@ -70,7 +69,18 @@ public class ProviceServer {
 						}, 1L, TimeUnit.SECONDS);
 					}
 				}
-			});
+			})
+			//2019-11-25新增  添加closeFuture使服务端在链路关闭的时候优雅退出
+			.channel().closeFuture().addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture channelFuture) throws Exception {
+					//业务逻辑处理代码，此处省略
+					bossGroup.shutdownGracefully();
+					workerGroup.shutdownGracefully();
+					logger.info("netty server 链路关闭");
+				}
+			})
+			;
 		} catch (Exception e) {
 			logger.error("绑定端口<{}>失败，正在重新绑定端口，信息：{}", port, e.getMessage());
 			try {
@@ -86,5 +96,10 @@ public class ProviceServer {
 		bossGroup.shutdownGracefully();
 		workerGroup.shutdownGracefully();
 		logger.info("Stopped Tcp Server: " + port);
+	}
+
+	public static void main(String[] args) {
+		ProviceServer server = new ProviceServer();
+		server.start(20000,"E:/test");
 	}
 }
