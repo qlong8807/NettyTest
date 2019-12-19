@@ -5,6 +5,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,8 +26,11 @@ public class ReconnectClient {
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
-            protected void initChannel(SocketChannel socketChannel) throws Exception {
-                socketChannel.pipeline().addLast(handler);
+            protected void initChannel(SocketChannel ch) throws Exception {
+                ch.pipeline().addLast(handler);
+                //在Netty中提供了一个IdleStateHandler类用于心跳检测,
+                // 在处理数据的handler中增加userEventTriggered用来接收心跳检测结果,event.state()的状态分别对应上面三个参数的时间设置，当满足某个时间的条件时会触发事件。
+                ch.pipeline().addLast("ping", new IdleStateHandler(60, 20, 60 * 10, TimeUnit.SECONDS));
             }
         });
         bootstrap.remoteAddress("localhost", 10001);
@@ -73,6 +79,26 @@ class MyInboundHandler extends ChannelInboundHandlerAdapter {
         this.client = client;
     }
 
+    /**
+     * 配合上面的addLast使用，指定3种时间
+     */
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        super.userEventTriggered(ctx,evt);
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state().equals(IdleState.READER_IDLE)) {
+                System.out.println("长期没收到服务器推送数据");
+                //可以选择重新连接
+            } else if (event.state().equals(IdleState.WRITER_IDLE)) {
+                System.out.println("长期未向服务器发送数据");
+                //发送心跳包
+                ctx.writeAndFlush("");
+            } else if (event.state().equals(IdleState.ALL_IDLE)) {
+                System.out.println("长期没有读写操作");
+            }
+        }
+    }
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final EventLoop eventLoop = ctx.channel().eventLoop();
